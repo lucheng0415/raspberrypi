@@ -1,0 +1,68 @@
+
+Python script auto run:
+树莓派开机启动python脚本的另一种方法
+第一种办法先简单提一下，比较简单。但是不知道为什么我开机同时运行三个Python脚本的时候就不能运行了。
+输入命令：
+sudo vim /etc/rc.local
+在exit 0上一行输入：
+python /home/pi/test.py
+开机运行命令是python + (空格) + python脚本位置
+这样就设置好了开机自启python脚本。
+sudo reboot
+
+
+Python GPIO:
+使用 RPi.GPIO 模块的输入（Input）功能
+
+GPIO interrupt 线程回调
+RPi.GPIO 在第二条线程中执行回调函数。这意味着回调函数可以同您的主程序同时运行，并且可以立即对边缘进行响应。例如：
+
+def my_callback(channel):
+    print('这是一个边缘事件回调函数！')
+    print('在通道 %s 上进行边缘检测'%channel)
+    print('该程序与您的主程序运行在不同的进程中')
+  
+GPIO.add_event_detect(channel, GPIO.RISING, callback=my_callback)  # 在通道上添加上升临界值检测
+... 其它程序代码 ...
+如果您需要多个回调函数：
+
+def my_callback_one(channel):
+    print('回调 1')
+  
+def my_callback_two(channel):
+    print('回调 2')
+  
+GPIO.add_event_detect(channel, GPIO.RISING)
+GPIO.add_event_callback(channel, my_callback_one)
+GPIO.add_event_callback(channel, my_callback_two)
+注意，在该示例中，回调函数为顺序运行而不是同时运行。这是因为当前只有一个进程供回调使用，而回调的运行顺序是依据它们被定义的顺序。
+
+开关防抖
+您可能会注意到，每次按钮按下时，回调操作被调用不止一次。这种现象被称作“开关抖动（switch bounce）”。这里有两种方法解决开关抖动问题：
+
+将一个 0.1uF 的电容连接到开关上。
+软件防止抖动
+两种方式一起用
+使用软件方式抖动，可以在您指定的回调函数中添加 bouncetime= 参数。
+抖动时间需要使用毫秒为单位进行书写。例如：
+
+# 在通道上添加上升临界值检测，忽略由于开关抖动引起的小于 200ms 的边缘操作
+GPIO.add_event_detect(channel, GPIO.RISING, callback=my_callback, bouncetime=200)
+或者
+
+
+GPIO.add_event_callback(channel, my_callback, bouncetime=200)
+remove_event_detect()
+由于某种原因，您不希望您的程序检测边缘事件，您可以将它停止：
+
+GPIO.remove_event_detect(channel)
+
+
+def fun_timer():
+    print('Hello Timer!')
+    global timer
+    timer = threading.Timer(5.5, fun_timer)
+    timer.start()
+
+timer = threading.Timer(1, fun_timer)
+timer.start()
