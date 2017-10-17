@@ -1,0 +1,3 @@
+
+Wlan config file path：/etc/wpa_supplicant/wpa_supplicant.conf
+sudo iwlist wlan0 scan
